@@ -1,5 +1,5 @@
 /* =========================================================
-   main.js  ―  画面遷移と全体制御（うちの子ダッシュ）
+   main.js  ―  画面遷移と全体制御（愛犬ダッシュ）
    タイトル → (写真トリミング | キャラ選択) → プレイ → リザルト
    ========================================================= */
 (function () {
@@ -18,7 +18,7 @@
   }
 
   // ===== ハイスコア =====
-  const BEST_KEY = "uchinoko-dash-best";
+  const BEST_KEY = "aiken-dash-best";
   let best = parseInt(localStorage.getItem(BEST_KEY) || "0", 10);
   document.getElementById("title-best").textContent = best;
   Game.setBest(best);

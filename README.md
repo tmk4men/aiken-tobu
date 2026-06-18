@@ -1,4 +1,4 @@
-# うちの子ダッシュ 🐕💨
+# 愛犬ダッシュ 🐕💨
 
 あなたの愛犬の写真（または用意したキャラ）が自動で走り続けるランゲーム。
 **タップでジャンプ**して障害物をよけ、骨🦴を拾いながら、どこまで走れるかを競います。
@@ -38,7 +38,7 @@ push するだけで自動反映されます（数十秒）。
 ```bash
 npm init -y
 npm install @capacitor/core @capacitor/cli @capacitor/android
-npx cap init "うちの子ダッシュ" com.example.uchinokodash --web-dir .
+# 設定は同梱の capacitor.config.json（appId: app.aikendash）を使うので init は不要
 npx cap add android
 npx cap sync
 npx cap open android

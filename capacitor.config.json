@@ -1,0 +1,8 @@
+{
+  "appId": "app.aikendash",
+  "appName": "愛犬ダッシュ",
+  "webDir": ".",
+  "server": {
+    "androidScheme": "https"
+  }
+}
