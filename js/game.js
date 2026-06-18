@@ -93,7 +93,8 @@
 
   // ===== 入力 =====
   function tap() {
-    if (S.phase === "idle") { S.phase = "running"; jump(); return; }
+    // 最初のタップは「走り出す」だけ。ジャンプはしない（次のタップから）。
+    if (S.phase === "idle") { S.phase = "running"; return; }
     if (S.phase === "running") jump();
   }
   function jump() {
