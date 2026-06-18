@@ -1,0 +1,14 @@
+# 依存・ビルド成果物
+node_modules/
+dist/
+
+# Capacitor / Android（後で追加されるもの）
+android/
+.gradle/
+*.keystore
+*.jks
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.vscode/

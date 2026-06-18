@@ -1,0 +1,192 @@
+:root {
+  --sky-top: #5cb3f0;
+  --sky-bot: #bfe6ff;
+  --ground: #8bc34a;
+  --ink: #43342a;
+  --accent: #ff7a45;
+  --accent-dark: #e84e1b;
+  --secondary: #5ec2c9;
+  --secondary-dark: #2f9aa1;
+  --card: #fffaf2;
+  --shadow: rgba(80, 50, 30, .25);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: "Mochiy Pop P One", "Hiragino Maru Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+  color: var(--ink);
+  background: #000;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+#app { position: fixed; inset: 0; overflow: hidden; }
+#game { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* ===== 画面の共通制御 ===== */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: calc(env(safe-area-inset-top) + 16px) 20px calc(env(safe-area-inset-bottom) + 16px);
+  text-align: center;
+}
+.screen.active { display: flex; animation: screen-in .35s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes screen-in { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+.hidden { display: none !important; }
+
+.screen-h { font-family: "Mochiy Pop One", sans-serif; font-size: 26px; color: #fff; text-shadow: 0 3px 0 var(--accent-dark), 0 5px 8px var(--shadow); margin-bottom: 4px; }
+.screen-sub { color: #fff; opacity: .9; font-size: 13px; margin-bottom: 14px; text-shadow: 0 1px 3px rgba(0,0,0,.3); }
+
+/* ===== ボタン ===== */
+.btn {
+  position: relative;
+  border: none;
+  border-radius: 999px;
+  padding: 16px 26px;
+  font-family: "Mochiy Pop One", sans-serif;
+  font-size: 18px;
+  color: #fff;
+  margin: 7px;
+  cursor: pointer;
+  min-width: 240px;
+  box-shadow: 0 5px 0 var(--accent-dark), 0 8px 14px var(--shadow);
+  transition: transform .06s ease, box-shadow .06s ease;
+}
+.btn .btn-ico { margin-right: 6px; }
+.btn.primary { background: linear-gradient(180deg, #ff9466, var(--accent)); }
+.btn.secondary { background: linear-gradient(180deg, #74d3d9, var(--secondary)); box-shadow: 0 5px 0 var(--secondary-dark), 0 8px 14px var(--shadow); }
+.btn.ghost { background: rgba(255,255,255,.92); color: var(--ink); box-shadow: 0 5px 0 #d9c7b5, 0 8px 14px var(--shadow); }
+.btn.wide { min-width: min(420px, 86vw); }
+.btn:active { transform: translateY(5px); box-shadow: 0 0 0 var(--accent-dark), 0 2px 6px var(--shadow); }
+.btn.secondary:active { box-shadow: 0 0 0 var(--secondary-dark), 0 2px 6px var(--shadow); }
+.btn:disabled { filter: grayscale(.6) opacity(.6); box-shadow: 0 5px 0 #b9a896; }
+/* つやのハイライト */
+.btn::after { content: ""; position: absolute; left: 14px; right: 14px; top: 7px; height: 30%; border-radius: 999px; background: rgba(255,255,255,.35); pointer-events: none; }
+
+.icon-btn {
+  position: absolute; top: calc(env(safe-area-inset-top) + 14px); left: 16px;
+  width: 46px; height: 46px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,.9); color: var(--ink);
+  font-size: 30px; line-height: 1; cursor: pointer;
+  box-shadow: 0 3px 8px var(--shadow); z-index: 5;
+}
+.icon-btn:active { transform: scale(.92); }
+
+/* ===== タイトル ===== */
+#screen-title { background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bot) 58%, #9ccc65 58%, #7cb342 100%); overflow: hidden; }
+.title-inner { display: flex; flex-direction: column; align-items: center; z-index: 2; }
+.title-dog { animation: dog-bob 1.6s ease-in-out infinite; filter: drop-shadow(0 8px 6px rgba(0,0,0,.18)); }
+@keyframes dog-bob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-14px) rotate(3deg); } }
+.logo {
+  font-family: "Mochiy Pop One", sans-serif;
+  line-height: .95; margin: 2px 0 6px; color: #fff;
+  text-shadow: 0 4px 0 var(--accent-dark), 0 7px 0 #c33c10, 0 10px 12px rgba(0,0,0,.25);
+}
+.logo-l1 { display: block; font-size: 38px; }
+.logo-l2 { display: block; font-size: 78px; color: #ffe14d; -webkit-text-stroke: 2px var(--accent-dark); }
+.lead { font-family: "Mochiy Pop One", sans-serif; color: #2b6a36; font-size: 16px; margin-bottom: 20px; }
+.title-btns { display: flex; flex-direction: column; }
+.best-chip { margin-top: 18px; background: rgba(255,255,255,.85); color: var(--ink); padding: 7px 18px; border-radius: 999px; font-size: 15px; box-shadow: 0 3px 6px var(--shadow); }
+.best-chip b { font-size: 18px; color: var(--accent-dark); }
+
+/* 浮遊する飾り */
+.title-deco { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.float { position: absolute; font-size: 30px; opacity: .85; animation: floaty 5s ease-in-out infinite; }
+.f1 { left: 10%; top: 16%; animation-delay: 0s; }
+.f2 { right: 12%; top: 12%; font-size: 24px; animation-delay: .8s; }
+.f3 { left: 16%; bottom: 26%; font-size: 22px; animation-delay: 1.6s; }
+.f4 { right: 14%; bottom: 30%; animation-delay: 2.2s; }
+.f5 { right: 24%; top: 40%; font-size: 22px; animation-delay: 1.1s; }
+@keyframes floaty { 0%,100% { transform: translateY(0) rotate(-8deg); } 50% { transform: translateY(-18px) rotate(8deg); } }
+
+/* ===== キャラ選択 ===== */
+#screen-select { background: linear-gradient(180deg, #6bbef2, #aedcff); justify-content: flex-start; padding-top: calc(env(safe-area-inset-top) + 70px); }
+.char-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+  width: min(460px, 92vw); overflow-y: auto; padding: 6px 4px 12px; flex: 1;
+}
+@media (min-width: 520px) { .char-grid { grid-template-columns: repeat(3, 1fr); } }
+.char-card {
+  background: var(--card); border-radius: 20px; padding: 10px 6px 12px;
+  display: flex; flex-direction: column; align-items: center;
+  box-shadow: 0 4px 0 #e3d3c0, 0 6px 12px var(--shadow);
+  cursor: pointer; border: 3px solid transparent;
+  transition: transform .12s ease, border-color .12s ease;
+  animation: card-pop .4s backwards;
+}
+@keyframes card-pop { from { opacity: 0; transform: scale(.8) translateY(10px); } to { opacity: 1; transform: none; } }
+.char-card:active { transform: scale(.95); }
+.char-card.selected { border-color: var(--accent); transform: translateY(-4px) scale(1.03); box-shadow: 0 8px 0 #e3d3c0, 0 12px 18px var(--shadow); }
+.char-card canvas { width: 96px; height: 96px; }
+.char-card .cname { font-family: "Mochiy Pop One", sans-serif; font-size: 15px; margin-top: 2px; }
+.char-card .check { position: absolute; opacity: 0; }
+.char-card.selected .cname::after { content: " ✓"; color: var(--accent); }
+.select-bar { width: 100%; display: flex; justify-content: center; padding-top: 8px; }
+
+/* ===== トリミング ===== */
+#screen-crop { background: #20242b; color: #fff; justify-content: flex-start; padding-top: calc(env(safe-area-inset-top) + 70px); }
+#crop-stage { position: relative; max-width: 100%; max-height: 58vh; touch-action: none; margin: 8px 0 auto; }
+#crop-canvas { max-width: 100%; max-height: 58vh; display: block; border-radius: 12px; }
+#crop-box { position: absolute; border: 2.5px solid #fff; box-shadow: 0 0 0 9999px rgba(0,0,0,.5); cursor: move; border-radius: 4px; }
+.handle { position: absolute; width: 28px; height: 28px; background: var(--accent); border: 3px solid #fff; border-radius: 50%; touch-action: none; box-shadow: 0 2px 4px rgba(0,0,0,.4); }
+.handle.tl { left: -15px; top: -15px; } .handle.tr { right: -15px; top: -15px; }
+.handle.bl { left: -15px; bottom: -15px; } .handle.br { right: -15px; bottom: -15px; }
+
+/* ===== プレイ中 ===== */
+#screen-play { justify-content: flex-start; background: transparent; pointer-events: none; }
+#screen-play.active { pointer-events: auto; }
+.hud { position: absolute; top: calc(env(safe-area-inset-top) + 12px); left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 16px; }
+.hud-pill {
+  display: flex; align-items: baseline; gap: 4px;
+  background: linear-gradient(180deg, #ff9466, var(--accent)); color: #fff;
+  padding: 8px 16px; border-radius: 999px; font-family: "Mochiy Pop One", sans-serif;
+  font-size: 24px; box-shadow: 0 4px 10px var(--shadow);
+}
+.hud-pill.ghost { background: rgba(255,255,255,.85); color: var(--ink); }
+.hud-label { font-size: 11px; opacity: .85; align-self: center; }
+.hud-unit { font-size: 13px; }
+
+#meters {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom) + 120px);
+  width: min(440px, 88%); background: rgba(20,20,30,.42);
+  padding: 14px 16px; border-radius: 18px; backdrop-filter: blur(2px);
+}
+.meter-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.meter-ico { font-size: 22px; }
+.bar { flex: 1; height: 22px; background: rgba(255,255,255,.28); border-radius: 999px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,.25); }
+.fill { width: 0%; height: 100%; border-radius: 999px; }
+.fill.power { background: linear-gradient(90deg, #ffe14d, #ff6a3d); }
+.fill.angle { background: linear-gradient(90deg, #9be15d, #00b09b); }
+
+.tap-area { position: absolute; inset: 0; background: transparent; border: none; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding-bottom: calc(env(safe-area-inset-bottom) + 44px); }
+.tap-text {
+  font-family: "Mochiy Pop One", sans-serif; font-size: 22px; color: #fff;
+  background: rgba(0,0,0,.32); padding: 12px 26px; border-radius: 999px;
+  text-shadow: 0 2px 4px rgba(0,0,0,.5); animation: tap-pulse 1s ease-in-out infinite;
+}
+.tap-text:empty { display: none; }
+@keyframes tap-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+
+/* ===== リザルト ===== */
+#screen-result { background: rgba(20,20,35,.55); backdrop-filter: blur(3px); }
+.result-card {
+  background: var(--card); border-radius: 28px; padding: 26px 24px 22px;
+  width: min(380px, 88vw); display: flex; flex-direction: column; align-items: center;
+  box-shadow: 0 10px 0 #e3d3c0, 0 16px 30px rgba(0,0,0,.4);
+  animation: pop-in .45s cubic-bezier(.2,.9,.3,1.4);
+}
+@keyframes pop-in { from { opacity: 0; transform: scale(.7) translateY(20px); } to { opacity: 1; transform: none; } }
+.result-emoji { font-size: 48px; animation: dog-bob 1.2s ease-in-out infinite; }
+.result-cap { font-size: 15px; color: #b08a6a; letter-spacing: 2px; }
+.result-dist { font-family: "Mochiy Pop One", sans-serif; font-size: 76px; line-height: 1; color: var(--accent); text-shadow: 0 4px 0 var(--accent-dark); margin: 2px 0; }
+.result-dist small { font-size: 26px; margin-left: 4px; }
+.result-best { font-size: 16px; color: var(--ink); min-height: 24px; margin: 6px 0 16px; }
