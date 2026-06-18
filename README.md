@@ -1,103 +1,64 @@
-# 愛犬が飛ぶ 🐕💨
+# うちの子ダッシュ 🐕💨
 
-愛犬の写真を撮って範囲を選び、その子を「ぶっ飛ばして」飛距離を競うゲームです。
-（昔あった「おばちゃんが飛ぶ」のような遊び方の、愛犬バージョン）
+あなたの愛犬の写真（または用意したキャラ）が自動で走り続けるランゲーム。
+**タップでジャンプ**して障害物をよけ、骨🦴を拾いながら、どこまで走れるかを競います。
 
-- **Web版**（このリポジトリ）… ブラウザでそのまま遊べる。GitHub Pages で公開して動作確認できる。
-- **Android版** … 同じコードを [Capacitor](https://capacitorjs.com/) で包んでアプリ化する（下記）。
+- **Web版**（このリポジトリ）… ブラウザでそのまま遊べる。GitHub Pages で公開済み。
+- **Android版** … 同じコードを [Capacitor](https://capacitorjs.com/) で包んでアプリ化（下記）。
+
+▶ **遊ぶ:** https://tmk4men.github.io/aiken-tobu/
 
 ## 遊び方
 
-1. **写真をとる / えらぶ** … スマホならカメラ、PCならファイル選択
-2. **範囲をえらぶ** … 枠をドラッグ／角でリサイズして、飛ばしたい部分を切り取る
-3. タップで **パワー** → もう一度タップで **角度** を決めて発射
-4. 空中で1回だけ **タップでブースト**。骨🦴を拾うとさらに加速
-5. 止まったところまでの **飛距離** がスコア。自己ベストを更新しよう
-
-写真がなくても「サンプル犬であそぶ」で試せます。
-
----
+1. **写真でつくる**（カメラ/ファイル）→ 走らせる範囲をトリミング、または **キャラをえらぶ**
+2. タップでスタート＆ジャンプ。空中でもう一度タップで **ダブルジャンプ**
+3. 岩・茂み・倒木などをよけ、骨🦴を拾う。走るほどスピードアップ
+4. ぶつかったら終了。**飛距離(m)** がスコア。自己ベストを更新しよう
 
 ## ローカルで動かす
 
-ファイル読み込みの都合で、簡易サーバー経由で開きます。
-
 ```bash
-# このフォルダで
-npx serve .
-# または
-python -m http.server 8000
+npx serve .        # または  python -m http.server 8000
 ```
 
-表示されたURL（例 http://localhost:8000 ）をブラウザで開く。
-スマホのカメラを使いたい場合は、後述の GitHub Pages（https） で開くのが確実です。
+## GitHub Pages 更新
 
----
-
-## GitHub Pages で公開（動作確認用）
-
-1. GitHub で新しいリポジトリを作る
-2. このフォルダを push する
-
-   ```bash
-   git init
-   git add .
-   git commit -m "愛犬が飛ぶ v1"
-   git branch -M main
-   git remote add origin https://github.com/<ユーザー名>/<リポジトリ名>.git
-   git push -u origin main
-   ```
-
-3. リポジトリの **Settings → Pages** で、Source を `main` ブランチの `/ (root)` に設定
-4. 数十秒後、`https://<ユーザー名>.github.io/<リポジトリ名>/` で遊べる
-
-> Pages は https なので、スマホのカメラ撮影もそのまま動きます。
-
----
+```bash
+git add -A
+git commit -m "更新"
+git push
+```
+push するだけで自動反映されます（数十秒）。
+アセットは `?v=N` でキャッシュバスターしているので、変更時はバージョンを上げると確実に反映されます。
 
 ## Android アプリにする（Capacitor）
 
-Web版をそのままネイティブアプリの中で動かします。Web側のコードは変更不要です。
-
-事前に必要: **Node.js / Android Studio（JDK 17 含む）**
+事前に必要: **Node.js / Android Studio（JDK 17）**
 
 ```bash
-# 初回だけ
 npm init -y
-npm install @capacitor/core @capacitor/cli
-npx cap init "愛犬が飛ぶ" com.example.aikentobu --web-dir .
-
-# Androidプラットフォーム追加
-npm install @capacitor/android
+npm install @capacitor/core @capacitor/cli @capacitor/android
+npx cap init "うちの子ダッシュ" com.example.uchinokodash --web-dir .
 npx cap add android
-
-# Web資産を同期して Android Studio を開く
 npx cap sync
 npx cap open android
 ```
-
-Android Studio で実機/エミュレータに **Run**（▶）すれば動きます。
-配布用APK/AABは Android Studio の **Build → Generate Signed Bundle / APK** から作成します。
-
-> カメラを `<input type="file" capture>` で使っているため、追加の権限プラグインは基本不要です。
-> 端末によって権限ダイアログが出たら許可してください。
-
----
+Android Studio で実機/エミュレータに ▶ Run。配布用は **Build → Generate Signed Bundle / APK**。
 
 ## ファイル構成
 
 ```
-index.html      画面の枠組み
-style.css       見た目
-js/crop.js      写真のトリミング（範囲選択）
-js/game.js      物理＋描画のゲーム本体
-js/main.js      画面遷移とスコア管理
+index.html        画面構成 + OGP
+style.css         見た目（レスポンシブ / スマホ風フレーム）
+js/characters.js  プリセットキャラ（手描き生成）
+js/crop.js        写真トリミング
+js/game.js        オートランナー本体（物理＋描画）
+js/main.js        画面遷移・スコア
+ogp.png           シェア用画像(1200x630)
 ```
 
-## カスタムしたいとき（メモ）
+## 調整メモ（`js/game.js` 冒頭）
 
-`js/game.js` 冒頭の物理パラメータで手触りが変わります。
-
-- `PX_PER_M` … 何pxを1mとするか（スコアの伸び）
-- `G` / `REST` / `FRICTION` … 重力・反発・摩擦
-- `BOOST_VX` … 空中ブーストの強さ
+- `BASE_SPEED` / `MAX_ADD` … 走る速さ・加速
+- `GRAVITY` / `JUMP_V1` / `JUMP_V2` … ジャンプの重さ・高さ
+- `PX_PER_M` … 何pxを1mにするか（スコアの伸び）

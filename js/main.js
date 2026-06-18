@@ -1,5 +1,5 @@
 /* =========================================================
-   main.js  ―  画面遷移と全体の制御
+   main.js  ―  画面遷移と全体制御（うちの子ダッシュ）
    タイトル → (写真トリミング | キャラ選択) → プレイ → リザルト
    ========================================================= */
 (function () {
@@ -12,20 +12,19 @@
     play: document.getElementById("screen-play"),
     result: document.getElementById("screen-result"),
   };
-
   function show(name) {
     Object.values(screens).forEach((s) => s.classList.remove("active"));
     screens[name].classList.add("active");
   }
 
   // ===== ハイスコア =====
-  const BEST_KEY = "aiken-tobu-best";
+  const BEST_KEY = "uchinoko-dash-best";
   let best = parseInt(localStorage.getItem(BEST_KEY) || "0", 10);
   document.getElementById("title-best").textContent = best;
   Game.setBest(best);
 
-  // ===== タイトルの犬を描く（アニメ用スプライト） =====
-  (function drawTitleDog() {
+  // タイトルの犬
+  (function () {
     const c = document.getElementById("title-dog");
     Characters.drawDog(c.getContext("2d"), Characters.ROSTER[0].opts, c.width);
   })();
@@ -47,8 +46,7 @@
   // ===== キャラ選択 =====
   const charGrid = document.getElementById("char-grid");
   const selectPlayBtn = document.getElementById("btn-select-play");
-  let selectedOpts = null;
-  let gridBuilt = false;
+  let selectedOpts = null, gridBuilt = false;
 
   function buildCharGrid() {
     if (gridBuilt) return;
@@ -57,9 +55,7 @@
       const card = document.createElement("button");
       card.className = "char-card";
       card.style.animationDelay = (i * 0.05) + "s";
-      const sprite = Characters.makeSprite(ch.opts, 192);
-      sprite.className = "csprite";
-      card.appendChild(sprite);
+      card.appendChild(Characters.makeSprite(ch.opts, 192));
       const name = document.createElement("span");
       name.className = "cname";
       name.textContent = ch.name;
@@ -88,10 +84,7 @@
 
   // ===== プレイ =====
   const hudDist = document.getElementById("hud-dist");
-  const hudBest = document.getElementById("hud-best");
-  const meters = document.getElementById("meters");
-  const powerFill = document.getElementById("power-fill");
-  const angleFill = document.getElementById("angle-fill");
+  const hudCoins = document.getElementById("hud-coins");
   const tapBtn = document.getElementById("btn-tap");
   const tapText = document.getElementById("tap-text");
 
@@ -99,50 +92,42 @@
     show("play");
     Game.reset();
     Game.start();
-    hudBest.textContent = best;
     updateHudLoop();
   }
 
   function updateHudLoop() {
     if (!screens.play.classList.contains("active")) return;
     hudDist.textContent = Math.round(Game.distance);
+    hudCoins.textContent = Game.coins;
     const phase = Game.phase;
-
-    if (phase === "power" || phase === "angle") {
-      meters.classList.remove("hidden");
-      powerFill.style.width = (Game.power * 100) + "%";
-      angleFill.style.width = (Game.angle * 100) + "%";
-    } else {
-      meters.classList.add("hidden");
-    }
-
     if (phase === "idle") tapText.textContent = "タップでスタート";
-    else if (phase === "power") tapText.textContent = "タップでパワー決定！";
-    else if (phase === "angle") tapText.textContent = "タップで角度決定！";
-    else if (phase === "flying") tapText.textContent = Game.boostUsed ? "" : "タップでブースト！";
+    else if (phase === "running") tapText.textContent = Game.distance < 28 ? "タップでジャンプ！" : "";
     else tapText.textContent = "";
-
     requestAnimationFrame(updateHudLoop);
   }
 
   tapBtn.addEventListener("click", (e) => { e.preventDefault(); Game.tap(); });
 
   // ===== リザルト =====
-  Game.onResult((dist, gameBest) => {
-    document.getElementById("result-dist").textContent = dist;
-    const rb = document.getElementById("result-best");
-    const emoji = document.getElementById("result-emoji");
+  const rDist = document.getElementById("result-dist");
+  const rCoins = document.getElementById("result-coins");
+  const rBest = document.getElementById("result-best");
+  const rCap = document.getElementById("result-cap");
+
+  Game.onResult((dist, gameBest, coins) => {
+    rDist.textContent = dist;
+    rCoins.textContent = "🦴 " + coins;
     if (gameBest > best) {
       best = gameBest;
       localStorage.setItem(BEST_KEY, String(best));
-      rb.textContent = "🎉 自己ベスト更新！";
-      emoji.textContent = "🏆";
       document.getElementById("title-best").textContent = best;
+      rCap.textContent = "🎉 しんきろく！";
+      rBest.textContent = "BEST " + best + " m";
     } else {
-      rb.textContent = "ベスト " + best + " m";
-      emoji.textContent = dist >= best * 0.8 ? "😆" : "🐕";
+      rCap.textContent = "きろく";
+      rBest.textContent = "BEST " + best + " m";
     }
-    setTimeout(() => show("result"), 650);
+    show("result");
   });
 
   document.getElementById("btn-retry").addEventListener("click", () => startPlay());

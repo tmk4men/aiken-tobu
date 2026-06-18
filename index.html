@@ -3,57 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#7ec0ee" />
-  <title>愛犬が飛ぶ</title>
+  <meta name="theme-color" content="#9bd0ff" />
+  <title>うちの子ダッシュ</title>
+  <meta name="description" content="あなたの愛犬の写真で遊ぶ、タップでジャンプのランゲーム。うちの子がどこまでも走る！" />
+
+  <!-- OGP / Twitter Card -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="うちの子ダッシュ" />
+  <meta property="og:title" content="うちの子ダッシュ" />
+  <meta property="og:description" content="あなたの愛犬の写真で遊ぶ、タップでジャンプのランゲーム。どこまで走れる？" />
+  <meta property="og:url" content="https://tmk4men.github.io/aiken-tobu/" />
+  <meta property="og:image" content="https://tmk4men.github.io/aiken-tobu/ogp.png?v=2" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="うちの子ダッシュ" />
+  <meta name="twitter:description" content="あなたの愛犬の写真で遊ぶ、タップでジャンプのランゲーム。" />
+  <meta name="twitter:image" content="https://tmk4men.github.io/aiken-tobu/ogp.png?v=2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Mochiy+Pop+P+One&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
+  <div id="stage">
   <div id="app">
     <!-- ゲーム本体（キャンバス） -->
     <canvas id="game"></canvas>
 
     <!-- ============ タイトル ============ -->
     <section id="screen-title" class="screen active">
-      <div class="title-deco" aria-hidden="true">
-        <span class="float f1">🦴</span><span class="float f2">🐾</span>
-        <span class="float f3">✨</span><span class="float f4">🐾</span>
-        <span class="float f5">🦴</span>
-      </div>
+      <div class="bokeh" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       <div class="title-inner">
-        <canvas id="title-dog" width="180" height="180" class="title-dog"></canvas>
-        <h1 class="logo"><span class="logo-l1">愛犬が</span><span class="logo-l2">飛ぶ</span></h1>
-        <p class="lead">あいけんを えらんで、ぶっとばせ！</p>
+        <canvas id="title-dog" width="200" height="200" class="title-dog"></canvas>
+        <h1 class="logo"><span class="logo-l1">うちの子</span><span class="logo-l2">ダッシュ</span></h1>
+        <p class="lead">タップでジャンプ。どこまで走れる？</p>
         <div class="title-btns">
-          <button id="btn-photo" class="btn primary">
-            <span class="btn-ico">📷</span> 写真でつくる
-          </button>
-          <button id="btn-select" class="btn secondary">
-            <span class="btn-ico">🐶</span> キャラをえらぶ
-          </button>
+          <button id="btn-photo" class="btn primary"><span class="btn-ico">📷</span>写真でつくる</button>
+          <button id="btn-select" class="btn secondary"><span class="btn-ico">🐶</span>キャラをえらぶ</button>
         </div>
         <input type="file" id="file-input" accept="image/*" hidden />
-        <p class="best-chip">🏆 ベスト <b id="title-best">0</b> m</p>
+        <p class="best-chip">BEST <b id="title-best">0</b> m</p>
       </div>
     </section>
 
     <!-- ============ キャラ選択 ============ -->
     <section id="screen-select" class="screen">
-      <button id="btn-select-back" class="icon-btn back">‹</button>
+      <button id="btn-select-back" class="icon-btn back" aria-label="もどる">‹</button>
       <h2 class="screen-h">すきな子をえらぶ</h2>
       <div id="char-grid" class="char-grid"></div>
       <div class="select-bar">
-        <button id="btn-select-play" class="btn primary wide" disabled>この子であそぶ ▶</button>
+        <button id="btn-select-play" class="btn primary wide" disabled>この子で走る ▶</button>
       </div>
     </section>
 
     <!-- ============ トリミング ============ -->
     <section id="screen-crop" class="screen">
-      <button id="btn-crop-back" class="icon-btn back">‹</button>
-      <h2 class="screen-h">飛ばす はんいを えらぶ</h2>
-      <p class="screen-sub">枠をドラッグして移動 / 角をつまんでサイズ変更</p>
+      <button id="btn-crop-back" class="icon-btn back" aria-label="もどる">‹</button>
+      <h2 class="screen-h">走らせる はんいを えらぶ</h2>
+      <p class="screen-sub">枠をドラッグ／角をつまんでサイズ変更</p>
       <div id="crop-stage">
         <canvas id="crop-canvas"></canvas>
         <div id="crop-box">
@@ -66,24 +75,12 @@
       </div>
     </section>
 
-    <!-- ============ プレイ中オーバーレイ ============ -->
+    <!-- ============ プレイ中 ============ -->
     <section id="screen-play" class="screen">
       <div class="hud">
-        <div class="hud-pill"><span class="hud-label">きょり</span><span id="hud-dist">0</span><span class="hud-unit">m</span></div>
-        <div class="hud-pill ghost"><span class="hud-label">BEST</span><span id="hud-best">0</span><span class="hud-unit">m</span></div>
+        <div class="hud-pill"><span id="hud-dist">0</span><span class="hud-unit">m</span></div>
+        <div class="hud-pill coin"><span class="coin-ico">🦴</span><span id="hud-coins">0</span></div>
       </div>
-
-      <div id="meters" class="hidden">
-        <div class="meter-row">
-          <span class="meter-ico">💪</span>
-          <div class="bar"><div id="power-fill" class="fill power"></div></div>
-        </div>
-        <div class="meter-row">
-          <span class="meter-ico">📐</span>
-          <div class="bar"><div id="angle-fill" class="fill angle"></div></div>
-        </div>
-      </div>
-
       <button id="btn-tap" class="tap-area">
         <span id="tap-text" class="tap-text">タップでスタート</span>
       </button>
@@ -92,19 +89,23 @@
     <!-- ============ リザルト ============ -->
     <section id="screen-result" class="screen">
       <div class="result-card">
-        <p class="result-emoji" id="result-emoji">🎉</p>
-        <p class="result-cap">きろく</p>
+        <p class="result-cap" id="result-cap">きろく</p>
         <p class="result-dist"><span id="result-dist">0</span><small>m</small></p>
-        <p id="result-best" class="result-best"></p>
-        <button id="btn-retry" class="btn primary wide">もう一回とばす 🔁</button>
+        <div class="result-stats">
+          <span id="result-coins">🦴 0</span>
+          <span class="dot">·</span>
+          <span id="result-best">BEST 0 m</span>
+        </div>
+        <button id="btn-retry" class="btn primary wide">もう一回はしる</button>
         <button id="btn-newphoto" class="btn ghost wide">べつの子にする</button>
       </div>
     </section>
   </div>
+  </div>
 
-  <script src="js/characters.js"></script>
-  <script src="js/crop.js"></script>
-  <script src="js/game.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/characters.js?v=2"></script>
+  <script src="js/crop.js?v=2"></script>
+  <script src="js/game.js?v=2"></script>
+  <script src="js/main.js?v=2"></script>
 </body>
 </html>
