@@ -8,6 +8,7 @@ android/
 .gradle/
 *.keystore
 *.jks
+keystore.properties
 
 # OS / エディタ
 .DS_Store
