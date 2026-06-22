@@ -53,7 +53,7 @@
     canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     groundY = Math.round(H * GROUND_RATIO);
-    dogH = Math.round(Math.max(48, Math.min(112, H * 0.13)));
+    dogH = Math.round(Math.max(40, Math.min(88, H * 0.105)));
     if (S.dogImg) dogW = dogH * (S.dogImg.width / S.dogImg.height);
   }
   window.addEventListener("resize", resize);
