@@ -79,6 +79,7 @@
 
   // ===== トリミング =====
   document.getElementById("btn-crop-ok").addEventListener("click", () => Crop.confirm());
+  document.getElementById("btn-crop-clear").addEventListener("click", () => Crop.reset());
   document.getElementById("btn-crop-back").addEventListener("click", () => show("title"));
   function onCropDone(croppedCanvas) { Game.setDog(croppedCanvas); startPlay(); }
 

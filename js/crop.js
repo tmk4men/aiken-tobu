@@ -1,7 +1,8 @@
 /* =========================================================
-   crop.js  ―  写真の「飛ばす範囲」を選ぶトリミングUI
-   画像を表示し、ドラッグで移動・角でリサイズできる枠を出す。
-   決定すると、その範囲を切り出した <canvas> を返す。
+   crop.js  ―  写真の「飛ばす範囲」を指でなぞって選ぶUI
+   画像を表示し、指（マウス）でぐるっと囲んだ形に切り抜く。
+   決定すると、なぞった輪郭の内側だけを切り出した（背景透明の）
+   <canvas> を返す。
    ========================================================= */
 (function (global) {
   "use strict";
@@ -9,20 +10,38 @@
   const stage = document.getElementById("crop-stage");
   const canvas = document.getElementById("crop-canvas");
   const ctx = canvas.getContext("2d");
-  const box = document.getElementById("crop-box");
+  const overlay = document.getElementById("crop-overlay");
+  const octx = overlay.getContext("2d");
+  const okBtn = document.getElementById("btn-crop-ok");
 
-  let img = null;          // 読み込んだ画像
+  let img = null;            // 読み込んだ画像（必要なら縮小した作業用キャンバス）
   let view = { w: 0, h: 0 }; // キャンバスの表示サイズ(px)
-  let sel = { x: 0, y: 0, w: 0, h: 0 }; // 枠（表示座標）
+  let points = [];           // なぞった軌跡（表示座標）
+  let closed = false;        // なぞり終わったか
   let onDoneCb = null;
 
-  const MIN = 40; // 枠の最小サイズ(px)
+  const MAX_SRC = 1600;      // 作業用にこのサイズまで縮小（iOSのcanvas上限/メモリ対策）
+  const MIN_POINTS = 8;      // これ未満は「なぞれてない」とみなす
 
-  /** 画像を読み込み、トリミングUIを初期化する */
+  /** 大きな写真は長辺 MAX_SRC まで縮小した作業用キャンバスにして使う */
+  function toWorkingSource(image) {
+    const long = Math.max(image.width, image.height);
+    if (long <= MAX_SRC) return image;
+    const r = MAX_SRC / long;
+    const work = document.createElement("canvas");
+    work.width = Math.round(image.width * r);
+    work.height = Math.round(image.height * r);
+    work.getContext("2d").drawImage(image, 0, 0, work.width, work.height);
+    return work;
+  }
+
+  /** 画像を読み込み、なぞりUIを初期化する */
   function load(src, onDone) {
     onDoneCb = onDone;
-    img = new Image();
-    img.onload = () => {
+    const loaded = new Image();
+    loaded.onload = () => {
+      img = toWorkingSource(loaded);
+
       // 画面に収まるサイズを計算（CSSの上限と合わせる）
       const maxW = stage.parentElement.clientWidth || window.innerWidth;
       const maxH = window.innerHeight * 0.62;
@@ -36,114 +55,152 @@
       canvas.style.height = view.h + "px";
       ctx.drawImage(img, 0, 0, view.w, view.h);
 
-      // 初期枠は中央 60%
-      sel.w = Math.round(view.w * 0.6);
-      sel.h = Math.round(view.h * 0.6);
-      sel.x = Math.round((view.w - sel.w) / 2);
-      sel.y = Math.round((view.h - sel.h) / 2);
-      renderBox();
+      overlay.width = view.w;
+      overlay.height = view.h;
+      overlay.style.width = view.w + "px";
+      overlay.style.height = view.h + "px";
+
+      reset();
     };
-    img.src = src;
+    loaded.src = src;
   }
 
-  /** 枠のDOM位置を更新 */
-  function renderBox() {
-    box.style.left = sel.x + "px";
-    box.style.top = sel.y + "px";
-    box.style.width = sel.w + "px";
-    box.style.height = sel.h + "px";
+  /** なぞりをまっさらに戻す */
+  function reset() {
+    points = [];
+    closed = false;
+    okBtn.disabled = true;
+    octx.clearRect(0, 0, view.w, view.h);
   }
 
-  // ===== ドラッグ操作 =====
-  let drag = null; // { mode, startX, startY, orig }
+  // ===== なぞり操作 =====
+  let drawing = false;
 
   function pointFromEvent(e) {
-    const r = canvas.getBoundingClientRect();
+    const r = overlay.getBoundingClientRect();
     const t = e.touches ? e.touches[0] : e;
-    return { x: t.clientX - r.left, y: t.clientY - r.top };
+    // 表示は縮小されている場合があるので実ピクセルへ換算
+    const sx = overlay.width / r.width;
+    const sy = overlay.height / r.height;
+    // 画像の外を選ばないようキャンバス内にクランプ
+    const x = Math.max(0, Math.min(view.w, (t.clientX - r.left) * sx));
+    const y = Math.max(0, Math.min(view.h, (t.clientY - r.top) * sy));
+    return { x, y };
   }
 
-  function startDrag(mode, e) {
+  function startDraw(e) {
     e.preventDefault();
-    drag = {
-      mode,
-      start: pointFromEvent(e),
-      orig: { ...sel },
-    };
+    drawing = true;
+    closed = false;
+    points = [pointFromEvent(e)];
+    okBtn.disabled = true;
+    redraw();
   }
 
-  function moveDrag(e) {
-    if (!drag) return;
+  function moveDraw(e) {
+    if (!drawing) return;
     e.preventDefault();
     const p = pointFromEvent(e);
-    const dx = p.x - drag.start.x;
-    const dy = p.y - drag.start.y;
-    const o = drag.orig;
-
-    if (drag.mode === "move") {
-      sel.x = clamp(o.x + dx, 0, view.w - sel.w);
-      sel.y = clamp(o.y + dy, 0, view.h - sel.h);
-    } else {
-      // 角リサイズ。mode は tl/tr/bl/br
-      let x1 = o.x, y1 = o.y, x2 = o.x + o.w, y2 = o.y + o.h;
-      if (drag.mode.includes("l")) x1 = clamp(o.x + dx, 0, x2 - MIN);
-      if (drag.mode.includes("r")) x2 = clamp(o.x + o.w + dx, x1 + MIN, view.w);
-      if (drag.mode.includes("t")) y1 = clamp(o.y + dy, 0, y2 - MIN);
-      if (drag.mode.includes("b")) y2 = clamp(o.y + o.h + dy, y1 + MIN, view.h);
-      sel.x = x1; sel.y = y1; sel.w = x2 - x1; sel.h = y2 - y1;
+    const last = points[points.length - 1];
+    // 細かすぎる点は間引く
+    if (!last || Math.hypot(p.x - last.x, p.y - last.y) >= 3) {
+      points.push(p);
+      redraw();
     }
-    renderBox();
   }
 
-  function endDrag() { drag = null; }
+  function endDraw() {
+    if (!drawing) return;
+    drawing = false;
+    closed = true;
+    okBtn.disabled = points.length < MIN_POINTS;
+    redraw();
+  }
 
-  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  /** なぞった軌跡をパスとして octx に積む */
+  function tracePath(c) {
+    c.beginPath();
+    c.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) c.lineTo(points[i].x, points[i].y);
+  }
 
-  // 枠本体＝移動
-  box.addEventListener("mousedown", (e) => {
-    if (e.target.classList.contains("handle")) return;
-    startDrag("move", e);
-  });
-  box.addEventListener("touchstart", (e) => {
-    if (e.target.classList.contains("handle")) return;
-    startDrag("move", e);
-  }, { passive: false });
+  /** オーバーレイを描き直す（外側を暗く＋輪郭線） */
+  function redraw() {
+    octx.clearRect(0, 0, view.w, view.h);
+    if (points.length < 2) return;
 
-  // 角＝リサイズ
-  box.querySelectorAll(".handle").forEach((h) => {
-    const mode = h.classList.contains("tl") ? "tl"
-      : h.classList.contains("tr") ? "tr"
-      : h.classList.contains("bl") ? "bl" : "br";
-    h.addEventListener("mousedown", (e) => { e.stopPropagation(); startDrag(mode, e); });
-    h.addEventListener("touchstart", (e) => { e.stopPropagation(); startDrag(mode, e); }, { passive: false });
-  });
+    // 外側を暗くして、なぞった内側だけ明るく見せる
+    octx.save();
+    octx.fillStyle = "rgba(0,0,0,.5)";
+    octx.fillRect(0, 0, view.w, view.h);
+    octx.globalCompositeOperation = "destination-out";
+    tracePath(octx);
+    octx.closePath();
+    octx.fill();
+    octx.restore();
 
-  window.addEventListener("mousemove", moveDrag);
-  window.addEventListener("touchmove", moveDrag, { passive: false });
-  window.addEventListener("mouseup", endDrag);
-  window.addEventListener("touchend", endDrag);
+    // 輪郭線
+    octx.save();
+    tracePath(octx);
+    if (closed) octx.closePath();
+    octx.lineJoin = "round";
+    octx.lineCap = "round";
+    octx.lineWidth = 3;
+    octx.strokeStyle = "#fff";
+    octx.setLineDash([9, 7]);
+    octx.stroke();
+    octx.restore();
+  }
 
-  /** いま選択している範囲を元画像の解像度で切り出して canvas を返す */
+  /** なぞった形で元画像から切り出した canvas（背景透明）を返す */
   function getCroppedCanvas() {
     const scale = img.width / view.w; // 表示→元画像 への倍率
-    const sx = sel.x * scale;
-    const sy = sel.y * scale;
-    const sw = sel.w * scale;
-    const sh = sel.h * scale;
+
+    // 元画像座標での外接矩形
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const p of points) {
+      const sx = p.x * scale, sy = p.y * scale;
+      if (sx < minX) minX = sx;
+      if (sy < minY) minY = sy;
+      if (sx > maxX) maxX = sx;
+      if (sy > maxY) maxY = sy;
+    }
+    const bw = Math.max(1, maxX - minX);
+    const bh = Math.max(1, maxY - minY);
 
     // 出力は最大256pxに正規化（ゲーム用スプライト）
-    const out = document.createElement("canvas");
     const maxOut = 256;
-    const r = Math.min(maxOut / sw, maxOut / sh, 1);
-    out.width = Math.round(sw * r);
-    out.height = Math.round(sh * r);
-    out.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, out.width, out.height);
+    const r = Math.min(maxOut / bw, maxOut / bh, 1);
+    const out = document.createElement("canvas");
+    out.width = Math.round(bw * r);
+    out.height = Math.round(bh * r);
+    const oc = out.getContext("2d");
+
+    // なぞった形でクリップ（外接矩形の左上を原点に）
+    oc.beginPath();
+    oc.moveTo((points[0].x * scale - minX) * r, (points[0].y * scale - minY) * r);
+    for (let i = 1; i < points.length; i++) {
+      oc.lineTo((points[i].x * scale - minX) * r, (points[i].y * scale - minY) * r);
+    }
+    oc.closePath();
+    oc.clip();
+
+    oc.drawImage(img, minX, minY, bw, bh, 0, 0, out.width, out.height);
     return out;
   }
 
   function confirm() {
-    if (onDoneCb) onDoneCb(getCroppedCanvas());
+    if (closed && points.length >= MIN_POINTS && onDoneCb) onDoneCb(getCroppedCanvas());
   }
 
-  global.Crop = { load, confirm };
+  // マウス
+  overlay.addEventListener("mousedown", startDraw);
+  window.addEventListener("mousemove", moveDraw);
+  window.addEventListener("mouseup", endDraw);
+  // タッチ
+  overlay.addEventListener("touchstart", startDraw, { passive: false });
+  window.addEventListener("touchmove", moveDraw, { passive: false });
+  window.addEventListener("touchend", endDraw);
+
+  global.Crop = { load, confirm, reset };
 })(window);
