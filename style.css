@@ -104,6 +104,17 @@ html, body {
 .title-btns { display: flex; flex-direction: column; }
 .best-chip { margin-top: 20px; background: var(--glass); border: 1px solid var(--glass-bd); backdrop-filter: blur(10px); color: #345; padding: 8px 22px; border-radius: 999px; font-weight: 700; font-size: 14px; box-shadow: var(--shadow-soft); }
 .best-chip b { font-size: 18px; color: var(--primary); margin: 0 2px; }
+.icon-btn.mute { left: auto; right: 18px; font-size: 24px; line-height: 46px; }
+.name-input {
+  margin: 0 0 16px; width: min(280px, 80vw);
+  padding: 12px 18px; border-radius: 14px; border: 1px solid var(--glass-bd);
+  background: rgba(255,255,255,.88); color: var(--ink);
+  font-family: inherit; font-weight: 700; font-size: 15px; text-align: center;
+  box-shadow: var(--shadow-soft); outline: none;
+}
+.name-input::placeholder { color: #b3a595; font-weight: 600; }
+.share-row { display: flex; gap: 10px; width: 100%; margin: 2px 0 10px; }
+.share-row .btn { flex: 1; }
 
 /* やわらかい光の玉（ボケ） */
 .bokeh { position: absolute; inset: 0; overflow: hidden; z-index: 1; pointer-events: none; }
